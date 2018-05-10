@@ -173,16 +173,16 @@ module.exports = JhipsterGenerator.extend({
                     });
                 }
             });
-
-            // UAA User
-            fnEntity(this, javaDir, javaTestDir, 'User');
-
-            try {
-                this.registerModule('generator-jhipster-string-converter', 'entity', 'post', 'entity', 'Long to String converter');
-            } catch (err) {
-                this.log(`${chalk.red.bold('WARN!')} Could not register as a jhipster entity post creation hook...\n`);
-            }
         });
+
+        // UAA User
+        fnEntity(this, javaDir, javaTestDir, 'User');
+
+        try {
+            this.registerModule('generator-jhipster-string-converter', 'entity', 'post', 'entity', 'Long to String converter');
+        } catch (err) {
+            this.log(`${chalk.red.bold('WARN!')} Could not register as a jhipster entity post creation hook...\n`);
+        }
     },
 
     install() {
