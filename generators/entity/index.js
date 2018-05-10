@@ -22,7 +22,7 @@ module.exports = JhipsterGenerator.extend({
             this.entityConfig = this.options.entityConfig;
         },
         displayLogo() {
-            this.log(chalk.white(`Running ${chalk.bold('JHipster postgresuuid-converter')} Generator! ${chalk.yellow(`v${packagejs.version}\n`)}`));
+            this.log(chalk.white(`Running ${chalk.bold('JHipster postgresstring-converter')} Generator! ${chalk.yellow(`v${packagejs.version}\n`)}`));
         },
         validate() {
             // this shouldn't be run directly
@@ -162,7 +162,7 @@ module.exports = JhipsterGenerator.extend({
 
     end() {
         if (this.yourOptionKey) {
-            this.log(`\n${chalk.bold.green('postgresuuid-converter enabled')}`);
+            this.log(`\n${chalk.bold.green('postgresstring-converter enabled')}`);
         }
     }
 });

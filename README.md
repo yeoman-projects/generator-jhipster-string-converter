@@ -1,6 +1,6 @@
-# generator-jhipster-uuid-converter
+# generator-jhipster-string-converter
 
-Modified from [https://github.com/amitjindal/generator-jhipster-postgresuuid-converter](https://github.com/amitjindal/generator-jhipster-postgresuuid-converter)
+Modified from [https://github.com/amitjindal/generator-jhipster-postgresstring-converter](https://github.com/amitjindal/generator-jhipster-postgresstring-converter)
 
 # Prerequisites
 
@@ -15,11 +15,11 @@ As this is a [JHipster](http://jhipster.github.io/) module, we expect you have J
 To install this module:
 
 ```bash
-npm install -g generator-jhipster-uuid-converter
+npm install -g generator-jhipster-string-converter
 ```
 
 To update this module:
 
 ```bash
-npm update -g generator-jhipster-uuid-converter
+npm update -g generator-jhipster-string-converter
 ```

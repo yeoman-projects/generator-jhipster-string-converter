@@ -5,7 +5,7 @@ const fse = require('fs-extra');
 const assert = require('yeoman-assert');
 const helpers = require('yeoman-test');
 
-describe('JHipster generator postgresuuid-converter', () => {
+describe('JHipster generator postgresstring-converter', () => {
     describe('Test with Maven and Angular2', () => {
         beforeEach((done) => {
             helpers

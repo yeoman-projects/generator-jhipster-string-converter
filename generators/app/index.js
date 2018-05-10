@@ -26,7 +26,7 @@ module.exports = JhipsterGenerator.extend({
             this.printJHipsterLogo();
 
             // Have Yeoman greet the user.
-            this.log(`\nWelcome to the ${chalk.bold.yellow('JHipster postgresuuid-converter')} generator! ${chalk.yellow(`v${packagejs.version}\n`)}`);
+            this.log(`\nWelcome to the ${chalk.bold.yellow('JHipster postgresstring-converter')} generator! ${chalk.yellow(`v${packagejs.version}\n`)}`);
         },
         checkJhipster() {
             const jhipsterVersion = this.jhipsterAppConfig.jhipsterVersion;
@@ -127,21 +127,30 @@ module.exports = JhipsterGenerator.extend({
                         const hitted = filename.split('.')[0];
                         if ($entities.contains(hitted)) {
                             // Entity scanned
-                            this.convertIDtoUUIDForColumn(`${javaDir}domain/${hitted}.java`, 'import java.time.Instant;', 'id');
-                            // And the Repository
-                            this.replaceContent(`${javaDir}repository/${hitted}Repository.java`, 'import org.springframework.stereotype.Repository;', 'import java.util.UUID;\nimport org.springframework.stereotype.Repository;');
-                            this.longToUUID(`${javaDir}repository/${hitted}Repository.java`);
+                            this.convertIDtoStringForColumn(`${javaDir}domain/${hitted}.java`, 'import java.time.Instant;', 'id');
+                            this.replaceContent(`${javaDir}domain/${hitted}.java`, 'import java.io.Serializable;',
+                                'import org.hibernate.annotations.GenericGenerator;\nimport java.io.Serializable;', undefined);
+                            this.replaceContent(`${javaDir}domain/${hitted}.java`, 'import org.hibernate.annotations.GenericGenerator;\nimport org.hibernate.annotations.GenericGenerator;',
+                                'import org.hibernate.annotations.GenericGenerator;', undefined);
+                            // Replace the Repository
+                            this.longToString(`${javaDir}repository/${hitted}Repository.java`);
+                            // Skip DTO/Mapper
+                            console.warn(`[Zero] ${hitted} Our project did not use DTO & Mapper, these two have been skipped.`);
+                            // Replace the Service/ServiceImpl
+                            this.longToString(`${javaDir}service/impl/${hitted}ServiceImpl.java`);
+                            this.longToString(`${javaDir}service/${hitted}Service.java`);
+                            // Replace the Rest
+                            this.longToString(`${javaDir}web/rest/${hitted}Resource.java`);
+                            console.warn(`[Zero] Start for testing class: ${hitted}`);
+                            // Tests
+                            this.longToString(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`);
+                            this.replaceContent(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`, '1L', '"1L"', true);
+                            this.replaceContent(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`, '2L', '"2L"', true);
+                            this.replaceContent(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`, '""', '"', true);
+                            this.replaceContent(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`, /String\.MAX_VALUE/g, '"-1"', true);
+                            this.replaceContent(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`, /getId\(\)\.intValue\(\)/g, 'getId()', false);
                         }
                     });
-                    // Domain
-                    this.convertIDtoUUIDForColumn(`${javaDir}domain/PersistentAuditEvent.java`, 'import java.util.Map;', 'event_id');
-                    this.importUUID(`${javaDir}domain/PersistentAuditEvent.java`, 'import java.util.Map;');
-                    // Repository
-                    this.replaceContent(`${javaDir}repository/PersistenceAuditEventRepository.java`, 'import java.util.List;', 'import java.util.List;\nimport java.util.UUID;');
-                    this.longToUUID(`${javaDir}repository/PersistenceAuditEventRepository.java`);
-                    // Service
-                    this.replaceContent(`${javaDir}service/AuditEventService.java`, 'import java.util.Optional;', 'import java.util.Optional;\nimport java.util.UUID;');
-                    this.longToUUID(`${javaDir}service/AuditEventService.java`);
                 }
             });
             // Shared
@@ -178,6 +187,6 @@ module.exports = JhipsterGenerator.extend({
     },
 
     end() {
-        this.log('End of postgresuuid-converter generator');
+        this.log('End of postgresstring-converter generator');
     }
 });
