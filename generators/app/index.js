@@ -12,6 +12,39 @@ const jhipsterConstants = require('generator-jhipster/generators/generator-const
 const JhipsterGenerator = generator.extend({});
 util.inherits(JhipsterGenerator, BaseGenerator);
 
+const fnEntity = (reference, javaDir, javaTestDir, hitted) => {
+    // Entity scanned
+    reference.convertIDtoStringForColumn(`${javaDir}domain/${hitted}.java`, 'import java.time.Instant;', 'id');
+    reference.replaceContent(`${javaDir}domain/${hitted}.java`, 'import java.io.Serializable;',
+        'import org.hibernate.annotations.GenericGenerator;\nimport java.io.Serializable;', undefined);
+    reference.replaceContent(`${javaDir}domain/${hitted}.java`, 'import org.hibernate.annotations.GenericGenerator;\nimport org.hibernate.annotations.GenericGenerator;',
+        'import org.hibernate.annotations.GenericGenerator;', undefined);
+    // DTO
+    if (fs.existsSync(`${javaDir}service/dto/${hitted}DTO.java`)) {
+        reference.longToString(`${javaDir}service/dto/${hitted}DTO.java`);
+    }
+    // Mapper
+    if (fs.existsSync(`${javaDir}service/mapper/${hitted}Mapper.java`)) {
+        reference.longToString(`${javaDir}service/mapper/${hitted}Mapper.java`);
+    }
+    // Replace the Repository
+    reference.longToString(`${javaDir}repository/${hitted}Repository.java`);
+    // Replace the Service/ServiceImpl
+    if (fs.existsSync(`${javaDir}service/impl/${hitted}ServiceImpl.java`)) {
+        reference.longToString(`${javaDir}service/impl/${hitted}ServiceImpl.java`);
+    }
+    reference.longToString(`${javaDir}service/${hitted}Service.java`);
+    // Replace the Rest
+    reference.longToString(`${javaDir}web/rest/${hitted}Resource.java`);
+    // Tests
+    reference.longToString(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`);
+    reference.replaceContent(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`, '1L', '"1L"', true);
+    reference.replaceContent(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`, '2L', '"2L"', true);
+    reference.replaceContent(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`, '""', '"', true);
+    reference.replaceContent(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`, /\("\)/g, '("")', true);
+    reference.replaceContent(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`, /String\.MAX_VALUE/g, '"-1"', true);
+    reference.replaceContent(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`, /getId\(\)\.intValue\(\)/g, 'getId()', false);
+};
 module.exports = JhipsterGenerator.extend({
     initializing: {
         readConfig() {
@@ -126,40 +159,23 @@ module.exports = JhipsterGenerator.extend({
                     files.forEach((filename) => {
                         const hitted = filename.split('.')[0];
                         if ($entities.contains(hitted)) {
-                            // Entity scanned
-                            this.convertIDtoStringForColumn(`${javaDir}domain/${hitted}.java`, 'import java.time.Instant;', 'id');
-                            this.replaceContent(`${javaDir}domain/${hitted}.java`, 'import java.io.Serializable;',
-                                'import org.hibernate.annotations.GenericGenerator;\nimport java.io.Serializable;', undefined);
-                            this.replaceContent(`${javaDir}domain/${hitted}.java`, 'import org.hibernate.annotations.GenericGenerator;\nimport org.hibernate.annotations.GenericGenerator;',
-                                'import org.hibernate.annotations.GenericGenerator;', undefined);
-                            // Replace the Repository
-                            this.longToString(`${javaDir}repository/${hitted}Repository.java`);
-                            // Skip DTO/Mapper
-                            console.warn(`[Zero] ${hitted} Our project did not use DTO & Mapper, these two have been skipped.`);
-                            // Replace the Service/ServiceImpl
-                            this.longToString(`${javaDir}service/impl/${hitted}ServiceImpl.java`);
-                            this.longToString(`${javaDir}service/${hitted}Service.java`);
-                            // Replace the Rest
-                            this.longToString(`${javaDir}web/rest/${hitted}Resource.java`);
-                            console.warn(`[Zero] ${hitted} Testing Case.`);
-                            // Tests
-                            this.longToString(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`);
-                            this.replaceContent(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`, '1L', '"1L"', true);
-                            this.replaceContent(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`, '2L', '"2L"', true);
-                            this.replaceContent(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`, '""', '"', true);
-                            this.replaceContent(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`, /String\.MAX_VALUE/g, '"-1"', true);
-                            this.replaceContent(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`, /getId\(\)\.intValue\(\)/g, 'getId()', false);
+                            // Each Entity
+                            fnEntity(this, javaDir, javaTestDir, hitted);
+                            // xml
                             // Liquibase
                             let file = glob.sync('src/main/resources/config/liquibase/changelog/*initial_schema.xml')[0];
                             this.replaceContent(file, 'type="bigint"', 'type="varchar(32)"', true);
                             this.replaceContent(file, 'autoIncrement="\\$\\{autoIncrement\\}"', '', true);
                             file = glob.sync(`src/main/resources/config/liquibase/changelog/*entity_${hitted}.xml`)[0];
-                            this.replaceContent(file, 'type="bigint"', 'type="uuid"', true);
+                            this.replaceContent(file, 'type="bigint"', 'type="varchar(32)"', true);
                             this.replaceContent(file, 'autoIncrement="\\$\\{autoIncrement\\}"', '', true);
                         }
                     });
                 }
             });
+
+            // UAA User
+            fnEntity(this, javaDir, javaTestDir, 'User');
 
             try {
                 this.registerModule('generator-jhipster-string-converter', 'entity', 'post', 'entity', 'Long to String converter');
