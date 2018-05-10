@@ -1,0 +1,10 @@
+{
+    "generator-jhipster-module": {
+        "promptValues": {
+            "githubName": "silentbalanceyh",
+            "authorName": "Lang",
+            "authorEmail": "silentbalanceyh@126.com",
+            "authorUrl": "https://www.vertxup.cn"
+        }
+    }
+}

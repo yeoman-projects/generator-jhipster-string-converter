@@ -1,2 +1,25 @@
-# generator-jhipster-uuid-converter-
-UUID Converter of JHipster
+# generator-jhipster-uuid-converter
+
+Modified from [https://github.com/amitjindal/generator-jhipster-postgresuuid-converter](https://github.com/amitjindal/generator-jhipster-postgresuuid-converter)
+
+# Prerequisites
+
+As this is a [JHipster](http://jhipster.github.io/) module, we expect you have JHipster and its related tools already installed:
+
+- [Installing JHipster](https://jhipster.github.io/installation.html)
+
+# Installation
+
+## With NPM
+
+To install this module:
+
+```bash
+npm install -g generator-jhipster-uuid-converter
+```
+
+To update this module:
+
+```bash
+npm update -g generator-jhipster-uuid-converter
+```
