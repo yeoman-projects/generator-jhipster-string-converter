@@ -141,7 +141,7 @@ module.exports = JhipsterGenerator.extend({
                             this.longToString(`${javaDir}service/${hitted}Service.java`);
                             // Replace the Rest
                             this.longToString(`${javaDir}web/rest/${hitted}Resource.java`);
-                            console.warn(`[Zero] Start for testing class: ${hitted}`);
+                            console.warn(`[Zero] ${hitted} Testing Case.`);
                             // Tests
                             this.longToString(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`);
                             this.replaceContent(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`, '1L', '"1L"', true);
@@ -149,11 +149,23 @@ module.exports = JhipsterGenerator.extend({
                             this.replaceContent(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`, '""', '"', true);
                             this.replaceContent(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`, /String\.MAX_VALUE/g, '"-1"', true);
                             this.replaceContent(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`, /getId\(\)\.intValue\(\)/g, 'getId()', false);
+                            // Liquibase
+                            let file = glob.sync('src/main/resources/config/liquibase/changelog/*initial_schema.xml')[0];
+                            this.replaceContent(file, 'type="bigint"', 'type="varchar(32)"', true);
+                            this.replaceContent(file, 'autoIncrement="\\$\\{autoIncrement\\}"', '', true);
+                            file = glob.sync(`src/main/resources/config/liquibase/changelog/*entity_${hitted}.xml`)[0];
+                            this.replaceContent(file, 'type="bigint"', 'type="uuid"', true);
+                            this.replaceContent(file, 'autoIncrement="\\$\\{autoIncrement\\}"', '', true);
                         }
                     });
                 }
             });
-            // Shared
+
+            try {
+                this.registerModule('generator-jhipster-string-converter', 'entity', 'post', 'entity', 'Long to String converter');
+            } catch (err) {
+                this.log(`${chalk.red.bold('WARN!')} Could not register as a jhipster entity post creation hook...\n`);
+            }
         });
     },
 
