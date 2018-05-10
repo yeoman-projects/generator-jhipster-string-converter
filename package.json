@@ -1,6 +1,6 @@
 {
   "name": "generator-jhipster-string-converter",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Long to String converter",
   "keywords": [
     "yeoman-generator",
@@ -10,7 +10,7 @@
   "author": {
     "name": "Lang",
     "email": "silentbalanceyh@126.com",
-    "url": "https://www.vertxup.cn"
+    "url": "https://www.vertxui.cn"
   },
   "files": [
     "generators"
