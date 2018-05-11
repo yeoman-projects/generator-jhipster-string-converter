@@ -23,11 +23,11 @@ module.exports = class {
     static processLiquibase(reference, javaDir, entityName, init = true) {
         if (init) {
             const file = glob.sync('src/main/resources/config/liquibase/changelog/*initial_schema.xml')[0];
-            reference.replaceContent(file, 'type="bigint"', 'type="varchar(32)"', true);
+            reference.replaceContent(file, 'type="bigint"', 'type="varchar(36)"', true);
             reference.replaceContent(file, 'autoIncrement="\\$\\{autoIncrement\\}"', '', true);
         }
         const file = glob.sync(`src/main/resources/config/liquibase/changelog/*entity_${entityName}.xml`)[0];
-        reference.replaceContent(file, 'type="bigint"', 'type="varchar(32)"', true);
+        reference.replaceContent(file, 'type="bigint"', 'type="varchar(36)"', true);
         reference.replaceContent(file, 'autoIncrement="\\$\\{autoIncrement\\}"', '', true);
     }
 
