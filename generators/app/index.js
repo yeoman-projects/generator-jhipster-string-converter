@@ -1,50 +1,17 @@
 const util = require('util');
 const chalk = require('chalk');
-const glob = require('glob');
 const Immutable = require('immutable');
 const fs = require('fs');
 const generator = require('yeoman-generator');
 const packagejs = require('../../package.json');
 const semver = require('semver');
 const BaseGenerator = require('../common');
+const EntityGenerator = require('../shared');
 const jhipsterConstants = require('generator-jhipster/generators/generator-constants');
 
 const JhipsterGenerator = generator.extend({});
 util.inherits(JhipsterGenerator, BaseGenerator);
 
-const fnEntity = (reference, javaDir, javaTestDir, hitted) => {
-    // Entity scanned
-    reference.convertIDtoStringForColumn(`${javaDir}domain/${hitted}.java`, 'import java.time.Instant;', 'id');
-    reference.replaceContent(`${javaDir}domain/${hitted}.java`, 'import java.io.Serializable;',
-        'import org.hibernate.annotations.GenericGenerator;\nimport java.io.Serializable;', undefined);
-    reference.replaceContent(`${javaDir}domain/${hitted}.java`, 'import org.hibernate.annotations.GenericGenerator;\nimport org.hibernate.annotations.GenericGenerator;',
-        'import org.hibernate.annotations.GenericGenerator;', undefined);
-    // DTO
-    if (fs.existsSync(`${javaDir}service/dto/${hitted}DTO.java`)) {
-        reference.longToString(`${javaDir}service/dto/${hitted}DTO.java`);
-    }
-    // Mapper
-    if (fs.existsSync(`${javaDir}service/mapper/${hitted}Mapper.java`)) {
-        reference.longToString(`${javaDir}service/mapper/${hitted}Mapper.java`);
-    }
-    // Replace the Repository
-    reference.longToString(`${javaDir}repository/${hitted}Repository.java`);
-    // Replace the Service/ServiceImpl
-    if (fs.existsSync(`${javaDir}service/impl/${hitted}ServiceImpl.java`)) {
-        reference.longToString(`${javaDir}service/impl/${hitted}ServiceImpl.java`);
-    }
-    reference.longToString(`${javaDir}service/${hitted}Service.java`);
-    // Replace the Rest
-    reference.longToString(`${javaDir}web/rest/${hitted}Resource.java`);
-    // Tests
-    reference.longToString(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`);
-    reference.replaceContent(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`, '1L', '"1L"', true);
-    reference.replaceContent(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`, '2L', '"2L"', true);
-    reference.replaceContent(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`, '""', '"', true);
-    reference.replaceContent(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`, /\("\)/g, '("")', true);
-    reference.replaceContent(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`, /String\.MAX_VALUE/g, '"-1"', true);
-    reference.replaceContent(`${javaTestDir}web/rest/${hitted}ResourceIntTest.java`, /getId\(\)\.intValue\(\)/g, 'getId()', false);
-};
 module.exports = JhipsterGenerator.extend({
     initializing: {
         readConfig() {
@@ -115,26 +82,11 @@ module.exports = JhipsterGenerator.extend({
 
         // variable from questions
         this.message = this.props.message;
-        // show all variables
-        // this.log('\n--- some config read from config ---');
-        // this.log(`baseName=${this.baseName}`);
-        // this.log(`packageName=${this.packageName}`);
-        // this.log(`clientFramework=${this.clientFramework}`);
-        // this.log(`clientPackageManager=${this.clientPackageManager}`);
-        // this.log(`buildTool=${this.buildTool}`);
-        //
-        // this.log('\n--- some function ---');
-        // this.log(`angularAppName=${this.angularAppName}`);
-        //
-        // this.log('\n--- some const ---');
-        // this.log(`javaDir=${javaDir}`);
-        // this.log(`resourceDir=${resourceDir}`);
-        // this.log(`webappDir=${webappDir}`);
-        //
-        // this.log('\n--- variables from questions ---');
-        // this.log(`\nmessage=${this.message}`);
-        // this.log('------\n');
+        /*
+         * Because this generator will be executed after JDL imported, here you should see .jhipster folder under current
+         */
         // Scan current folder to read json
+        console.info('[Zero] This tool is for microservice architecture only without "Front-End" modification.');
         const configDir = '.jhipster';
         const entities = [];
         fs.readdir(configDir, (err, files) => {
@@ -144,8 +96,6 @@ module.exports = JhipsterGenerator.extend({
                     if (!filename.startsWith('.') && filename.endsWith('json')) {
                         const entity = filename.split('.')[0];
                         entities.push(entity);
-                    } else {
-                        console.info(`[Zero] ${filename} has been skipped!`);
                     }
                 });
             }
@@ -154,30 +104,30 @@ module.exports = JhipsterGenerator.extend({
             const domainDir = `${javaDir}domain`;
             fs.readdir(domainDir, (err, files) => {
                 if (err) {
-                    console.info(err);
+                    throw new Error(err);
                 } else {
                     files.forEach((filename) => {
                         const hitted = filename.split('.')[0];
                         if ($entities.contains(hitted)) {
-                            // Each Entity
-                            fnEntity(this, javaDir, javaTestDir, hitted);
-                            // xml
-                            // Liquibase
-                            let file = glob.sync('src/main/resources/config/liquibase/changelog/*initial_schema.xml')[0];
-                            this.replaceContent(file, 'type="bigint"', 'type="varchar(32)"', true);
-                            this.replaceContent(file, 'autoIncrement="\\$\\{autoIncrement\\}"', '', true);
-                            file = glob.sync(`src/main/resources/config/liquibase/changelog/*entity_${hitted}.xml`)[0];
-                            this.replaceContent(file, 'type="bigint"', 'type="varchar(32)"', true);
-                            this.replaceContent(file, 'autoIncrement="\\$\\{autoIncrement\\}"', '', true);
+                            /**
+                             * This code will be executed after import jdl file
+                             * Step 1: jhipster import-jdl <fileName>
+                             * Step 2: yo jhipster-string-converter
+                             */
+                            EntityGenerator.processEntity(this, javaDir, javaTestDir, hitted);
+                            EntityGenerator.processLiquibase(this, javaDir, hitted, true);
                         }
                     });
                 }
             });
         });
 
-        // UAA User
-        fnEntity(this, javaDir, javaTestDir, 'User');
-
+        /**
+         * This code is for UAA configured, Modified User only
+         */
+        EntityGenerator.processEntity(this, javaDir, javaTestDir, 'User');
+        EntityGenerator.processLiquibase(this, javaDir, 'User', true);
+        console.info('[Zero] Successfully modified all the entities.', entities);
         try {
             this.registerModule('generator-jhipster-string-converter', 'entity', 'post', 'entity', 'Long to String converter');
         } catch (err) {

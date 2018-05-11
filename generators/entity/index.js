@@ -8,7 +8,7 @@ const BaseGenerator = require('../common');
 const jhipsterConstants = require('generator-jhipster/generators/generator-constants');
 const _s = require('underscore.string');
 const fs = require('fs');
-
+const EntityGenerator = require('../shared');
 const JhipsterGenerator = generator.extend({});
 util.inherits(JhipsterGenerator, BaseGenerator);
 
@@ -79,68 +79,9 @@ module.exports = JhipsterGenerator.extend({
 
             if (!pattern.test(content)) {
                 // We need to convert this entity
-
-                // JAVA
-                this.convertIDtoUUIDForColumn(`${javaDir}domain/${entityName}.java`, 'import java.util.Objects;', 'id');
-
-                // DTO
-                if (fs.existsSync(`${javaDir}service/dto/${entityName}DTO.java`)) {
-                    this.importUUID(`${javaDir}service/dto/${entityName}DTO.java`, 'import java.util.Objects;');
-                    this.longToUUID(`${javaDir}service/dto/${entityName}DTO.java`);
-                }
-
-                // Mapper
-                if (fs.existsSync(`${javaDir}service/mapper/${entityName}Mapper.java`)) {
-                    this.importUUID(`${javaDir}service/mapper/${entityName}Mapper.java`, 'import org.mapstruct.*;');
-                    this.longToUUID(`${javaDir}service/mapper/${entityName}Mapper.java`);
-                }
-
-                // And the Repository
-                this.importUUID(`${javaDir}repository/${entityName}Repository.java`, 'import org.springframework.data.jpa.repository.*;');
-                this.longToUUID(`${javaDir}repository/${entityName}Repository.java`);
-
-                // The Search Repository
-                if (fs.existsSync(`${javaDir}repository/search/${entityName}SearchRepository.java`)) {
-                    this.importUUID(`${javaDir}repository/search/${entityName}SearchRepository.java`, 'import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;');
-                    this.longToUUID(`${javaDir}repository/search/${entityName}SearchRepository.java`);
-                }
-
-                // Service
-                if (fs.existsSync(`${javaDir}service/${entityName}Service.java`)) {
-                    this.importUUID(`${javaDir}service/${entityName}Service.java`, 'import org.slf4j.LoggerFactory;');
-                    this.longToUUID(`${javaDir}service/${entityName}Service.java`);
-                }
-
-                // ServiceImp
-                if (fs.existsSync(`${javaDir}service/impl/${entityName}ServiceImpl.java`)) {
-                    this.importUUID(`${javaDir}service/impl/${entityName}ServiceImpl.java`, 'import org.slf4j.LoggerFactory;');
-                    this.longToUUID(`${javaDir}service/impl/${entityName}ServiceImpl.java`);
-                }
-
-                // Resource
-                this.importUUID(`${javaDir}web/rest/${entityName}Resource.java`);
-                this.longToUUID(`${javaDir}web/rest/${entityName}Resource.java`);
-
-                // JavaScript
-                const entityNameSpinalCased = _s.dasherize(_s.decapitalize(entityName));
-                const stateFile = glob.sync(`${this.webappDir}../webapp/app/entities/${entityNameSpinalCased}/${entityNameSpinalCased}*.state.js`)[0];
-                this.replaceContent(stateFile, '\{id\:int\}', '{id:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}}', true);
-
-                // Liquidbase
-                const file = glob.sync(`src/main/resources/config/liquibase/changelog/*entity_${entityName}.xml`)[0];
-                this.replaceContent(file, 'type="bigint"', 'type="uuid"', true);
-                this.replaceContent(file, 'autoIncrement="\\$\\{autoIncrement\\}"', '', true);
-
-                // Test
-                // Handle the question of life check
-                this.replaceContent(`${javaTestDir}/web/rest/${entityName}ResourceIntTest.java`, '(42L|42)', 'UUID.fromString("00000000-0000-0000-0000-000000000042")', true);
-                this.importUUID(`${javaTestDir}/web/rest/${entityName}ResourceIntTest.java`, 'import java.util.List;');
-                this.longToUUID(`${javaTestDir}/web/rest/${entityName}ResourceIntTest.java`);
-                this.replaceContent(`${javaTestDir}/web/rest/${entityName}ResourceIntTest.java`, '1L', 'UUID.fromString("00000000-0000-0000-0000-000000000001")', true);
-                this.replaceContent(`${javaTestDir}/web/rest/${entityName}ResourceIntTest.java`, '2L', 'UUID.fromString("00000000-0000-0000-0000-000000000002")', true);
-                this.replaceContent(`${javaTestDir}/web/rest/${entityName}ResourceIntTest.java`, 'getId\\(\\)\\.intValue\\(\\)', 'getId().toString()', true);
-                this.replaceContent(`${javaTestDir}/web/rest/${entityName}ResourceIntTest.java`, '\\.intValue\\(\\)', '.toString()', true);
-                this.replaceContent(`${javaTestDir}/web/rest/${entityName}ResourceIntTest.java`, 'MAX_VALUE', 'randomUUID()', true);
+                EntityGenerator.processEntity(this, javaDir, javaTestDir, entityName);
+                // Convert with update module
+                EntityGenerator.processLiquibase(this, javaDir, entityName, false);
             }
         },
 
