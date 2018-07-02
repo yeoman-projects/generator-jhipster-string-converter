@@ -26,7 +26,7 @@ module.exports = JhipsterGenerator.extend({
             this.printJHipsterLogo();
 
             // Have Yeoman greet the user.
-            this.log(`\nWelcome to the ${chalk.bold.yellow('JHipster postgresstring-converter')} generator! ${chalk.yellow(`v${packagejs.version}\n`)}`);
+            this.log(`\nWelcome to the ${chalk.bold.yellow('JHipster string-converter')} generator! ${chalk.yellow(`v${packagejs.version}\n`)}`);
         },
         checkJhipster() {
             const jhipsterVersion = this.jhipsterAppConfig.jhipsterVersion;

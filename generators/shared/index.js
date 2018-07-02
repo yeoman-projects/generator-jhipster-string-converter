@@ -19,6 +19,30 @@ const executeField = (reference, file, callback) => {
     }
 };
 
+const prepareCreatedBy = () => (
+    '<column name="created_by" type="varchar(50)" defaultValue="system">\n' +
+    '\t\t\t\t<constraints nullable="false"/>\n' +
+    '\t\t\t</column>'
+);
+const prepareCreatedDate = () => (
+    '<column name="created_date" type="timestamp" defaultValueDate="${now}">\n' +
+    '\t\t\t\t<constraints nullable="false"/>\n' +
+    '\t\t\t</column>'
+);
+const prepareLastModifiedBy = () => (
+    '<column name="last_modified_by" type="varchar(50)"/>'
+);
+const prepareLastModifiedDate = () => (
+    '<column name="last_modified_date" type="timestamp"/>'
+);
+
+const auditColumn = {
+    created_by: prepareCreatedBy,
+    created_date: prepareCreatedDate,
+    last_modified_by: prepareLastModifiedBy,
+    last_modified_date: prepareLastModifiedDate,
+};
+
 module.exports = class {
     static processLiquibase(reference, javaDir, entityName, init = true) {
         if (init) {
@@ -26,9 +50,19 @@ module.exports = class {
             reference.replaceContent(file, 'type="bigint"', 'type="varchar(36)"', true);
             reference.replaceContent(file, 'autoIncrement="\\$\\{autoIncrement\\}"', '', true);
         }
-        const file = glob.sync(`src/main/resources/config/liquibase/changelog/*entity_${entityName}.xml`)[0];
-        reference.replaceContent(file, 'type="bigint"', 'type="varchar(36)"', true);
-        reference.replaceContent(file, 'autoIncrement="\\$\\{autoIncrement\\}"', '', true);
+        const files = glob.sync(`src/main/resources/config/liquibase/changelog/*entity_${entityName}.xml`);
+        files.forEach((file) => {
+            reference.replaceContent(file, 'type="bigint"', 'type="varchar(36)"', true);
+            reference.replaceContent(file, 'autoIncrement="\\$\\{autoIncrement\\}"', '', true);
+            for (const field in auditColumn) {
+                const segment = auditColumn[field]();
+                const fileContent = fs.readFileSync(file, 'utf-8');
+                if (fileContent.indexOf(`name="${field}"`) < 0) {
+                    reference.addColumnToLiquibaseEntityChangeset(file, segment);
+                }
+            }
+            // reference.addColumnToLiquibaseEntityChangeset(file, prepareCreatedBy());
+        });
     }
 
     static processEntity(reference, javaDir, javaTestDir, entityName) {
@@ -40,6 +74,11 @@ module.exports = class {
             // Replace duplicated import of org.hibernate.annotations.GenericGenerator
             reference.replaceContent(file, 'import org.hibernate.annotations.GenericGenerator;\nimport org.hibernate.annotations.GenericGenerator;',
                 'import org.hibernate.annotations.GenericGenerator;', undefined);
+            // Extends from Audit
+            reference.replaceContent(file, `public class ${entityName}`,
+                `public class ${entityName} extends AbstractAuditingEntity`, undefined);
+            reference.replaceContent(file, 'extends AbstractAuditingEntity extends AbstractAuditingEntity',
+                'extends AbstractAuditingEntity', undefined);
         });
         // DTO
         executeField(reference, `${javaDir}service/dto/${entityName}DTO.java`);

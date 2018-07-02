@@ -67,9 +67,7 @@ module.exports = JhipsterGenerator.extend({
             const javaTestDir = `${jhipsterConstants.SERVER_TEST_SRC_DIR + this.packageFolder}/`;
             // const resourceDir = jhipsterConstants.SERVER_MAIN_RES_DIR;
             // const webappDir = jhipsterConstants.CLIENT_MAIN_SRC_DIR;
-
             const entityName = this.entityConfig.entityClass;
-
             // do your stuff here
             // check if repositories are already annotated
             const uuidGeneratorAnnotation = '@GeneratedValue.*"UUIDGenerator"';
